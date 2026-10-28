@@ -1,0 +1,12 @@
+digraph G {
+ rankdir=TB; nodesep=0.5; ranksep=0.6;
+ node [shape=record, fontname="Helvetica", fontsize=10, color=black, fontcolor=black];
+ edge [fontname="Helvetica", fontsize=9, color=black, fontcolor=black];
+ "Ticket1" [label="{Ticket|- numero : int\l- prix : int\l- statut : StatutTicket\l|+ annuler()\l+ validerAuto()\l+ getStatut() : StatutTicket\l}"];
+ "Voyageur" [label="{Voyageur|- numero : int\l- nom : String\l- email : String\l|+ getNumero() : int\l+ getNom() : String\l+ getEmail() : String\l+ toString() : String\l}"];
+ "Trajet1" [label="{Trajet|- numero : int\l- villeDepart : String\l- villeArrivee : String\l- date : String\l- heureDepart : String\l- capacite : int\l- placesDisponibles : int\l- heuresAvantDepart : int\l- delaiAnnulationHeures : int\l|+ reserverPlace()\l+ libererPlace()\l+ estComplet() : boolean\l+ annulationEncorePossible() : boolean\l}"];
+ "Statut" [label="{\<\<enumeration\>\>\nStatutTicket|RESERVE\lPAYE\lANNULE\l|}"];
+ "Ticket1" -> "Voyageur" [arrowhead=vee, taillabel="*", headlabel="1"];
+ "Ticket1" -> "Trajet1" [arrowhead=vee, taillabel="*", headlabel="1"];
+ "Ticket1" -> "Statut" [arrowhead=vee, style=dashed, label=""];
+}
