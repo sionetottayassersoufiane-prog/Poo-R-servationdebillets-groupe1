@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Voyageur {
     private final int numero;
     private final String nom;
@@ -28,6 +30,23 @@ public class Voyageur {
 
     public String getEmail() {
         return email;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Voyageur)) {
+            return false;
+        }
+        Voyageur autre = (Voyageur) o;
+        return numero == autre.numero;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numero);
     }
 
     @Override

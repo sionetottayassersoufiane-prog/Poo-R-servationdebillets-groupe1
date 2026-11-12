@@ -1,3 +1,5 @@
+import java.util.Objects;
+
 public class Ticket {
     private final int numero;
     private final Voyageur voyageur;
@@ -59,6 +61,23 @@ public class Ticket {
 
     public StatutTicket getStatut() {
         return statut;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Ticket)) {
+            return false;
+        }
+        Ticket autre = (Ticket) o;
+        return numero == autre.numero;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numero);
     }
 
     @Override

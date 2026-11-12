@@ -1,4 +1,4 @@
-# Réservation de tickets de voyage : Jalon 1 : modèle et invariants
+# Réservation de tickets de voyage : Jalon 3 : interfaces et collections
 
 Projet de programmation orientée objet, IIAA511, 2iE. Enseignant : Dr Babacar LEYE. Groupe 01. Java 17.
 
@@ -8,7 +8,7 @@ Projet de programmation orientée objet, IIAA511, 2iE. Enseignant : Dr Babacar L
 - NADEMBEGA Ingrid Océane, matricule 20240189
 - NIKIEMA Pengdwendé Hanifah, matricule 20260303
 
-Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/Poo-R-servationdebillets-groupe1.git
+Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/poo-reservationdebillets-groupe01
 
 ## Le sujet en bref
 
@@ -18,9 +18,9 @@ Les données restent en mémoire pendant l'exécution. Il n'y a ni interface gra
 
 ## Ce que contient ce rendu
 
-Ce premier jalon pose les trois classes du noyau : `Voyageur`, `Trajet` et `Ticket`, avec l'énumération `StatutTicket`. Chaque classe garde son état privé et refuse dès la construction toute donnée qui casserait ses invariants. Il n'y a pas encore d'héritage, de collection ni d'exception personnalisée, ces notions arrivent aux jalons suivants.
+Nous ajoutons l'interface `CatalogueTrajets`, implémentée par `CatalogueTrajetsMemoire` avec une `HashMap`. Les classes métier redéfinissent `equals` et `hashCode` avant tout stockage dans une collection de hachage, et `Trajet` devient comparable pour trier les parcours par date.
 
-Tag attendu sur GitHub : `jalon-1`.
+Tag attendu sur GitHub : `jalon-3`.
 
 ## Lancer le programme
 
@@ -38,20 +38,19 @@ java -cp target/classes Main
 
 ## Les classes
 
-- `Voyageur` : numéro, nom, adresse e-mail. Tout est immuable après la création.
-- `Trajet` : numéro, villes, date, heure, capacité, places libres, heures restantes avant le départ et délai d'annulation. Il sait réserver et libérer une place.
-- `Ticket` : relie un voyageur à un trajet, porte un prix et un statut. Il sait s'annuler et se valider au départ.
-- `StatutTicket` : RESERVE, PAYE, ANNULE.
-- `Main` : onze essais reproductibles qui affichent OK ou ECHEC.
+- `CatalogueTrajets` (interface) : `ajouter`, `trouver`, `retirer`, `estVide`, `taille`, `parcourir`, `trajetsDisponibles`, `rechercherParVille`, `regrouperParType`.
+- `CatalogueTrajetsMemoire` : stocke les trajets dans une `Map<Integer, Trajet>`.
+- `Voyageur`, `Trajet`, `Ticket` : identité fondée sur le numéro (`equals` et `hashCode`). `Trajet` implémente `Comparable<Trajet>` (date, heure, numéro).
+- Le reste du modèle est celui du jalon 2.
+- `Main` : trente et un essais cumulés.
 
 ## Les invariants
 
-- Un numéro est toujours strictement positif.
-- Un nom n'est jamais vide et une adresse e-mail contient un arobase.
-- Les villes de départ et d'arrivée sont renseignées et différentes.
-- La capacité est strictement positive et le nombre de places libres reste entre 0 et la capacité.
-- Un ticket est toujours lié à un voyageur et à un trajet, et son prix n'est jamais négatif.
-- Un ticket ne passe de RESERVE à ANNULE ou PAYE qu'une seule fois, et un refus laisse le ticket et le trajet inchangés.
+- Un numéro de trajet n'existe qu'une fois dans le catalogue.
+- Une opération refusée ne modifie pas le catalogue.
+- Aucune méthode publique ne donne accès à la `Map` interne : `parcourir()`, `trajetsDisponibles()`, `rechercherParVille()` et `regrouperParType()` renvoient des copies.
+- Deux objets de même numéro sont égaux et ont le même `hashCode`.
+- Ajouter `null` est refusé, chercher un numéro absent renvoie `null`.
 
 ## Les essais
 
@@ -59,25 +58,38 @@ Les essais sont dans `Main` et affichent OK ou ECHEC avec un bilan à la fin. JU
 
 ## Deux choix à défendre
 
-1. **Le délai d'annulation est donné au constructeur du trajet.** Pour l'instant `Trajet` reçoit simplement 24, 48 ou 72. Nous savons que ce n'est pas idéal, car le type de transport n'est pas représenté. Nous l'avons gardé ainsi parce que l'héritage n'est étudié qu'au jalon 2, et nous le remplacerons alors par une méthode redéfinie dans chaque sous-classe.
-2. **Le statut du ticket est une énumération et seul `Ticket` peut le changer.** Un `String` libre aurait permis d'écrire n'importe quoi. Avec `StatutTicket` et un attribut privé, les seules transitions possibles sont celles de `annuler()` et de `validerAuto()`.
+1. **Une `HashMap<Integer, Trajet>` pour le catalogue.** L'opération la plus fréquente est de retrouver un trajet par son numéro, ce qui est quasi immédiat avec un dictionnaire. Une `ArrayList` aurait demandé de parcourir tous les trajets. Le tri n'est fait qu'à la demande, sur une copie, avec `Collections.sort`.
+2. **Un doublon est refusé sans remplacer l'ancien.** `ajouter` renvoie `false` et le catalogue ne bouge pas. Remplacer silencieusement un trajet déjà vendu pourrait faire perdre les places déjà réservées. Les exceptions seront introduites au jalon 4, c'est pourquoi le contrat passe pour l'instant par un booléen.
+
+## Comparaison des structures étudiées
+
+| Structure | Doublons | Ordre | Accès principal | Usage dans le projet |
+|---|---|---|---|---|
+| `ArrayList` | oui | ordre d'insertion | par position, recherche par valeur linéaire | listes triées renvoyées par `parcourir()` et `rechercherParVille()` |
+| `HashSet` | non | non garanti | test d'appartenance rapide | essai sur l'unicité des voyageurs dans `Main` |
+| `HashMap` | clés uniques | non garanti | par clé, quasi immédiat | **catalogue : numéro vers `Trajet` (choix retenu)** |
+| `TreeMap` | clés uniques | trié par clé | par clé, logarithmique | `regrouperParType()`, types classés par ordre alphabétique |
+
+Choix retenu : `HashMap<Integer, Trajet>` pour le catalogue. Choix écarté : une `ArrayList<Trajet>`, car retrouver un numéro oblige à parcourir toute la liste et que détecter un doublon demande une boucle supplémentaire.
+
+Commit conseillé pour ce jalon : « Ajoute catalogue et collections », puis le tag `jalon-3`.
 
 ## Une difficulté rencontrée
 
-Dans le constructeur de `Ticket`, nous avions d'abord rempli les champs puis appelé `trajet.reserverPlace()`. Si le trajet était complet, l'exception partait mais l'objet était déjà à moitié construit. En relisant la section 2.5 du CM 1 (valider avant de modifier), nous avons déplacé tous les contrôles et la réservation de la place avant la première affectation d'un champ.
+Nous nous sommes demandé ce que veut dire « même trajet » quand un bus et un vol portent le même numéro. Nous avons décidé que l'identité est le numéro seul, comme pour les clés d'une `HashMap` vue au CM 3, et nous avons écrit un essai qui le vérifie. Nous avons aussi compris que renvoyer directement la liste interne laisserait l'appelant la vider, d'où les copies renvoyées.
 
 ## Répartition du travail
 
-- SIONE Totta Yasser Soufiane : `Trajet` et `Ticket`.
-- NADEMBEGA Ingrid Océane : `Main` et les essais reproductibles.
-- NIKIEMA Pengdwendé Hanifah : `Voyageur`, README et diagramme de classes.
+- SIONE Totta Yasser Soufiane : `CatalogueTrajetsMemoire` (recherche, regroupement, tri).
+- NADEMBEGA Ingrid Océane : les essais du catalogue dans `Main`.
+- NIKIEMA Pengdwendé Hanifah : `equals`, `hashCode`, `compareTo`, l'interface `CatalogueTrajets`, README et diagramme.
 
 Chaque membre pousse ses propres commits avec son compte GitHub.
 
 ## Sources consultées
 
-CM 1 (objets, encapsulation, constructeurs) et TD 1 du Dr LEYE. Le diagramme a été dessiné avec Graphviz (fichier source `docs/diagramme-classes.dot`).
+CM 3 (collections) et TD 3 du Dr LEYE. Diagramme dessiné avec Graphviz (source `docs/diagramme-classes.dot`).
 
 ## Suite
 
-Au jalon 2, `Trajet` devient abstraite avec `TrajetBus`, `TrajetTrain` et `TrajetVol`, et se compose d'un itinéraire et d'un horaire.
+Au jalon 4, nous ajoutons `ServiceReservation`, les exceptions métier, l'atomicité et les tests JUnit.
