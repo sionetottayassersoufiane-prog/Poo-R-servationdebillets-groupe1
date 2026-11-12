@@ -8,7 +8,7 @@ Projet de programmation orientée objet, IIAA511, 2iE. Enseignant : Dr Babacar L
 - NADEMBEGA Ingrid Océane, matricule 20240189
 - NIKIEMA Pengdwendé Hanifah, matricule 20260303
 
-Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/poo-reservationdebillets-groupe01
+Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/Poo-R-servationdebillets-groupe1.git
 
 ## Le sujet en bref
 
