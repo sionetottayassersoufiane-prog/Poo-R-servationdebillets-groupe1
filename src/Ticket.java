@@ -25,6 +25,10 @@ public class Ticket {
         this.statut = StatutTicket.RESERVE;
     }
 
+    public boolean peutEtreAnnule() {
+        return statut == StatutTicket.RESERVE && trajet.annulationEncorePossible();
+    }
+
     public void annuler() {
         if (statut != StatutTicket.RESERVE) {
             throw new IllegalStateException("seul un ticket reserve peut etre annule");

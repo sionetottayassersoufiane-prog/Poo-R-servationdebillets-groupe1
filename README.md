@@ -1,4 +1,4 @@
-# Réservation de tickets de voyage : Jalon 3 : interfaces et collections
+# Réservation de tickets de voyage : Jalon 4 : exceptions, tests, recette et application finale
 
 Projet de programmation orientée objet, IIAA511, 2iE. Enseignant : Dr Babacar LEYE. Groupe 01. Java 17.
 
@@ -8,7 +8,7 @@ Projet de programmation orientée objet, IIAA511, 2iE. Enseignant : Dr Babacar L
 - NADEMBEGA Ingrid Océane, matricule 20240189
 - NIKIEMA Pengdwendé Hanifah, matricule 20260303
 
-Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/Poo-R-servationdebillets-groupe1.git
+Dépôt GitHub du groupe : https://github.com/sionetottayassersoufiane-prog/Poo-R-servationdebillets-groupe1
 
 ## Le sujet en bref
 
@@ -18,78 +18,88 @@ Les données restent en mémoire pendant l'exécution. Il n'y a ni interface gra
 
 ## Ce que contient ce rendu
 
-Nous ajoutons l'interface `CatalogueTrajets`, implémentée par `CatalogueTrajetsMemoire` avec une `HashMap`. Les classes métier redéfinissent `equals` et `hashCode` avant tout stockage dans une collection de hachage, et `Trajet` devient comparable pour trier les parcours par date.
+`ServiceReservation` orchestre les opérations (réserver, annuler, valider le départ) et garantit qu'un refus ne laisse rien à moitié modifié. Cinq exceptions métier remplacent les booléens et les `null` du jalon 3 pour les échecs qui comptent, et `IllegalArgumentException` reste réservée aux arguments invalides. Un menu en ligne de commande, `MenuConsole`, permet d'utiliser l'agence sans toucher au code : consulter les trajets, chercher une ville, enregistrer un voyageur, réserver, annuler, valider un départ et voir le bilan. La suite JUnit 5 compte 64 tests.
 
-Tag attendu sur GitHub : `jalon-3`.
+Le jalon 4 est aussi la version finale du projet, rendue le 20 novembre 2026. Il n'y a donc qu'un seul rendu et un seul tag.
+
+Tag attendu sur GitHub : `jalon4`.
 
 ## Lancer le programme
 
-```
-javac -d out src/*.java
-java -cp out Main
-```
-
-Avec Maven (Java 17 obligatoire) :
+Démonstration automatique :
 
 ```
 mvn compile
 java -cp target/classes Main
 ```
 
+Menu interactif :
+
+```
+java -cp target/classes Main menu
+```
+
+Sans Maven :
+
+```
+javac -d out src/*.java
+java -cp out Main menu
+```
+
+Tests :
+
+```
+mvn test
+```
+
 ## Les classes
 
-- `CatalogueTrajets` (interface) : `ajouter`, `trouver`, `retirer`, `estVide`, `taille`, `parcourir`, `trajetsDisponibles`, `rechercherParVille`, `regrouperParType`.
-- `CatalogueTrajetsMemoire` : stocke les trajets dans une `Map<Integer, Trajet>`.
-- `Voyageur`, `Trajet`, `Ticket` : identité fondée sur le numéro (`equals` et `hashCode`). `Trajet` implémente `Comparable<Trajet>` (date, heure, numéro).
-- Le reste du modèle est celui du jalon 2.
-- `Main` : trente et un essais cumulés.
+- `ServiceReservation` : enregistre les voyageurs, ajoute les trajets, réserve, annule, valide les départs, calcule le bilan.
+- `ReservationException` et ses cinq filles : `ElementIntrouvableException`, `DoublonException`, `TrajetCompletException`, `ReservationInterditeException`, `AnnulationImpossibleException`.
+- Le modèle (`Voyageur`, `Trajet` et ses trois sous-classes, `Itineraire`, `Horaire`, `Ticket`) et le catalogue sont ceux du jalon 3. `Ticket` gagne `peutEtreAnnule()`.
+- `MenuConsole` : lit les choix au clavier et affiche les résultats. Il ne contient aucune règle métier, il appelle seulement `ServiceReservation` et affiche les refus.
+- `Main` : sans argument, joue le scénario de démonstration avec des refus ; avec l'argument `menu`, lance le menu sur des données de départ.
+- `test` : six classes de test, dont `MenuConsoleTest` qui simule des saisies au clavier.
 
 ## Les invariants
 
-- Un numéro de trajet n'existe qu'une fois dans le catalogue.
-- Une opération refusée ne modifie pas le catalogue.
-- Aucune méthode publique ne donne accès à la `Map` interne : `parcourir()`, `trajetsDisponibles()`, `rechercherParVille()` et `regrouperParType()` renvoient des copies.
-- Deux objets de même numéro sont égaux et ont le même `hashCode`.
-- Ajouter `null` est refusé, chercher un numéro absent renvoie `null`.
+- Une réservation refusée ne crée aucun ticket et n'occupe aucune place.
+- Une annulation refusée laisse le ticket et la place comme avant.
+- Un voyageur ne peut pas avoir deux tickets actifs (réservé ou payé) sur le même trajet, mais peut réserver de nouveau après une annulation.
+- Un numéro de voyageur, une adresse e-mail ou un numéro de trajet déjà pris est refusé sans rien modifier.
+- Les numéros de ticket sont successifs et ne sautent pas lors d'un refus.
+- Une saisie du menu qui n'est pas un nombre est refusée sans rien modifier et sans arrêter le programme.
+- Un refus du service s'affiche sous la forme « Operation refusee : ... » et le menu continue.
+- Tous les invariants des jalons précédents restent vrais.
 
-## Les essais
+## Les tests
 
-Les essais sont dans `Main` et affichent OK ou ECHEC avec un bilan à la fin. JUnit n'est introduit qu'au jalon 4.
+La suite JUnit 5 compte 64 tests : cas normaux, cas limites et refus. Pour chaque refus important, le test vérifie le type d'exception et l'état après l'appel (nombre de places, nombre de tickets, statut). La trace de recette est dans `docs/recette.md` et la note de conception dans `docs/note-conception.md`.
 
-## Deux choix à défendre
+## Trois choix à défendre
 
-1. **Une `HashMap<Integer, Trajet>` pour le catalogue.** L'opération la plus fréquente est de retrouver un trajet par son numéro, ce qui est quasi immédiat avec un dictionnaire. Une `ArrayList` aurait demandé de parcourir tous les trajets. Le tri n'est fait qu'à la demande, sur une copie, avec `Collections.sort`.
-2. **Un doublon est refusé sans remplacer l'ancien.** `ajouter` renvoie `false` et le catalogue ne bouge pas. Remplacer silencieusement un trajet déjà vendu pourrait faire perdre les places déjà réservées. Les exceptions seront introduites au jalon 4, c'est pourquoi le contrat passe pour l'instant par un booléen.
-
-## Comparaison des structures étudiées
-
-| Structure | Doublons | Ordre | Accès principal | Usage dans le projet |
-|---|---|---|---|---|
-| `ArrayList` | oui | ordre d'insertion | par position, recherche par valeur linéaire | listes triées renvoyées par `parcourir()` et `rechercherParVille()` |
-| `HashSet` | non | non garanti | test d'appartenance rapide | essai sur l'unicité des voyageurs dans `Main` |
-| `HashMap` | clés uniques | non garanti | par clé, quasi immédiat | **catalogue : numéro vers `Trajet` (choix retenu)** |
-| `TreeMap` | clés uniques | trié par clé | par clé, logarithmique | `regrouperParType()`, types classés par ordre alphabétique |
-
-Choix retenu : `HashMap<Integer, Trajet>` pour le catalogue. Choix écarté : une `ArrayList<Trajet>`, car retrouver un numéro oblige à parcourir toute la liste et que détecter un doublon demande une boucle supplémentaire.
-
-Commit conseillé pour ce jalon : « Ajoute catalogue et collections », puis le tag `jalon-3`.
+1. **Le service orchestre, les entités gardent leurs invariants.** `ServiceReservation` vérifie dans un ordre précis (prix, voyageur, trajet, double réservation, trajet complet) avant de créer le `Ticket`, qui est le seul à occuper la place. Même si quelqu'un contournait le service, `Ticket` et `Trajet` refuseraient eux-mêmes un état interdit.
+2. **Cinq exceptions métier vérifiées, et rien de plus.** Chaque exception correspond à une réaction différente de l'appelant : objet introuvable, doublon, trajet complet, réservation interdite, annulation impossible. Un argument invalide (prix négatif, valeur nulle) reste une `IllegalArgumentException`, comme demandé au TD 4.
+3. **Le menu est séparé de la logique métier.** `MenuConsole` reçoit un `InputStream` et un `PrintStream`, ce qui permet de le tester avec des saisies simulées. Toutes les règles restent dans `ServiceReservation` et dans les entités. Le périmètre reste celui du sujet : données en mémoire, sans sauvegarde ni file d'attente.
 
 ## Une difficulté rencontrée
 
-Nous nous sommes demandé ce que veut dire « même trajet » quand un bus et un vol portent le même numéro. Nous avons décidé que l'identité est le numéro seul, comme pour les clés d'une `HashMap` vue au CM 3, et nous avons écrit un essai qui le vérifie. Nous avons aussi compris que renvoyer directement la liste interne laisserait l'appelant la vider, d'où les copies renvoyées.
+Garantir qu'un refus ne change rien nous a demandé de revoir l'ordre des instructions de `reserver`. Notre première version incrémentait le numéro de ticket avant de créer le ticket, donc un refus faisait sauter un numéro. Nous avons déplacé l'incrémentation après la création et ajouté le test `lesNumerosDeTicketSontSuccessifs` ainsi que des tests qui comparent l'état avant et après chaque refus.
+
+Tester un menu qui attend des saisies au clavier n'était pas évident au début. En faisant recevoir à `MenuConsole` un flux d'entrée et un flux de sortie au lieu de `System.in` et `System.out`, nous avons pu écrire des tests avec un `ByteArrayInputStream` et lire ce qui s'affiche dans un `ByteArrayOutputStream`.
 
 ## Répartition du travail
 
-- SIONE Totta Yasser Soufiane : `CatalogueTrajetsMemoire` (recherche, regroupement, tri).
-- NADEMBEGA Ingrid Océane : les essais du catalogue dans `Main`.
-- NIKIEMA Pengdwendé Hanifah : `equals`, `hashCode`, `compareTo`, l'interface `CatalogueTrajets`, README et diagramme.
+- SIONE Totta Yasser Soufiane : les exceptions, `ServiceReservation`, `MenuConsole` et l'intégration dans `Main`.
+- NADEMBEGA Ingrid Océane : les tests de `ServiceReservation` et du catalogue, `MenuConsoleTest`, la démonstration dans `Main`.
+- NIKIEMA Pengdwendé Hanifah : les tests de `Voyageur`, `Trajet` et `Ticket`, la note de conception, la trace de recette, README et diagramme final.
 
 Chaque membre pousse ses propres commits avec son compte GitHub.
 
 ## Sources consultées
 
-CM 3 (collections) et TD 3 du Dr LEYE. Diagramme dessiné avec Graphviz (source `docs/diagramme-classes.dot`).
+CM 1 à CM 5 et TD 1 à TD 4 du Dr LEYE. Diagramme dessiné avec Graphviz (source `docs/diagramme-classes.dot`).
 
 ## Suite
 
-Au jalon 4, nous ajoutons `ServiceReservation`, les exceptions métier, l'atomicité et les tests JUnit.
+Le dossier `livrables-moodle` (à côté du dossier du projet dans le zip) contient le rapport PDF, la présentation PDF et la matrice PME à déposer sur Moodle. Il reste la capsule vidéo MP4 (sur clé USB) et le retour individuel de chaque membre.
