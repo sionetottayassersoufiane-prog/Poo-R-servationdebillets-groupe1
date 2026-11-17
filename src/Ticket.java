@@ -44,6 +44,10 @@ public class Ticket {
         if (statut != StatutTicket.RESERVE) {
             throw new IllegalStateException("seul un ticket reserve peut etre valide au depart");
         }
+        if (!trajet.departAtteint()) {
+            throw new IllegalStateException("le depart du trajet " + trajet.getNumero()
+                    + " n'est pas encore atteint (dans " + trajet.getHeuresAvantDepart() + "h)");
+        }
         statut = StatutTicket.PAYE;
     }
 

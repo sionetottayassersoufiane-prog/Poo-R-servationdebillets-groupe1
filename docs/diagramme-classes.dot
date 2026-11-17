@@ -1,12 +1,45 @@
 digraph G {
- rankdir=TB; nodesep=0.5; ranksep=0.6;
+ rankdir=TB; nodesep=0.4; ranksep=0.6;
  node [shape=record, fontname="Helvetica", fontsize=10, color=black, fontcolor=black];
  edge [fontname="Helvetica", fontsize=9, color=black, fontcolor=black];
- "Ticket1" [label="{Ticket|- numero : int\l- prix : int\l- statut : StatutTicket\l|+ annuler()\l+ validerAuto()\l+ getStatut() : StatutTicket\l}"];
- "Voyageur" [label="{Voyageur|- numero : int\l- nom : String\l- email : String\l|+ getNumero() : int\l+ getNom() : String\l+ getEmail() : String\l+ toString() : String\l}"];
- "Trajet1" [label="{Trajet|- numero : int\l- villeDepart : String\l- villeArrivee : String\l- date : String\l- heureDepart : String\l- capacite : int\l- placesDisponibles : int\l- heuresAvantDepart : int\l- delaiAnnulationHeures : int\l|+ reserverPlace()\l+ libererPlace()\l+ estComplet() : boolean\l+ annulationEncorePossible() : boolean\l}"];
+
+ "MenuConsole" [label="{MenuConsole|- service : ServiceReservation\l- entree : Scanner\l- sortie : PrintStream\l|+ lancer()\l}"];
+ "Service" [label="{ServiceReservation|- voyageurs : Map\<Integer, Voyageur\>\l- emailsUtilises : Set\<String\>\l- tickets : List\<Ticket\>\l- prochainNumeroTicket : int\l|+ enregistrerVoyageur(Voyageur)\l+ ajouterTrajet(Trajet)\l+ reserver(int, int, int) : Ticket\l+ annuler(int)\l+ validerDepart(int) : int\l+ ticketsDuVoyageur(int) : List\l+ compterParStatut() : Map\l+ chiffreAffaires() : int\l}"];
+ "Interface" [label="{\<\<interface\>\>\nCatalogueTrajets||+ ajouter(Trajet) : boolean\l+ trouver(int) : Trajet\l+ retirer(int) : boolean\l+ estVide() : boolean\l+ taille() : int\l+ parcourir() : List\l+ trajetsDisponibles() : List\l+ rechercherParVille(String) : List\l+ regrouperParType() : Map\l}"];
+ "Memoire" [label="{CatalogueTrajetsMemoire|- trajets : Map\<Integer, Trajet\>\l|}"];
+ "Ticket" [label="{Ticket|- numero : int\l- prix : int\l- statut : StatutTicket\l|+ annuler()\l+ validerAuto()  (refuse avant le depart)\l+ peutEtreAnnule() : boolean\l+ equals(Object) : boolean\l}"];
  "Statut" [label="{\<\<enumeration\>\>\nStatutTicket|RESERVE\lPAYE\lANNULE\l|}"];
- "Ticket1" -> "Voyageur" [arrowhead=vee, taillabel="*", headlabel="1"];
- "Ticket1" -> "Trajet1" [arrowhead=vee, taillabel="*", headlabel="1"];
- "Ticket1" -> "Statut" [arrowhead=vee, style=dashed, label=""];
+ "Voyageur" [label="{Voyageur|- numero : int\l- nom : String\l- email : String\l|+ getNumero() : int\l+ getNom() : String\l+ getEmail() : String\l+ equals(Object) : boolean\l+ hashCode() : int\l}"];
+ "Trajet" [label="{\<\<abstract\>\>\nTrajet|- numero : int\l- capacite : int\l- placesDisponibles : int\l|+ reserverPlace()\l+ libererPlace()\l+ estComplet() : boolean\l+ annulationEncorePossible() : boolean\l+ departAtteint() : boolean\l+ delaiAnnulationHeures() : int \{abstract\}\l+ getType() : String \{abstract\}\l+ equals(Object) : boolean\l+ compareTo(Trajet) : int\l}"];
+ "Bus" [label="{TrajetBus|- compagnie : String\l|+ delaiAnnulationHeures() : int (24)\l+ getType() : String\l}"];
+ "Train" [label="{TrajetTrain|- numeroTrain : String\l|+ delaiAnnulationHeures() : int (48)\l+ getType() : String\l}"];
+ "Vol" [label="{TrajetVol|- numeroVol : String\l|+ delaiAnnulationHeures() : int (72)\l+ getType() : String\l}"];
+ "Itineraire" [label="{Itineraire|- villeDepart : String\l- villeArrivee : String\l|+ getVilleDepart() : String\l+ getVilleArrivee() : String\l}"];
+ "Horaire" [label="{Horaire|- date : String\l- heureDepart : String\l- heuresAvantDepart : int\l|+ getDate() : String\l+ getHeureDepart() : String\l+ getHeuresAvantDepart() : int\l}"];
+ "Reservation" [label="{\<\<checked\>\>\nReservationException||}"];
+ "E1" [label="{ElementIntrouvableException}"];
+ "E2" [label="{DoublonException}"];
+ "E3" [label="{TrajetCompletException}"];
+ "E4" [label="{ReservationInterditeException}"];
+ "E5" [label="{AnnulationImpossibleException}"];
+
+ "MenuConsole" -> "Service" [arrowhead=vee, taillabel="1", headlabel="1"];
+ "Service" -> "Interface" [arrowhead=vee, taillabel="1", headlabel="1"];
+ "Memoire" -> "Interface" [arrowhead=empty, style=dashed];
+ "Service" -> "Ticket" [arrowhead=vee, taillabel="1", headlabel="*"];
+ "Service" -> "Voyageur" [arrowhead=vee, taillabel="1", headlabel="*"];
+ "Interface" -> "Trajet" [arrowhead=vee, taillabel="1", headlabel="*"];
+ "Ticket" -> "Voyageur" [arrowhead=vee, taillabel="*", headlabel="1"];
+ "Ticket" -> "Trajet" [arrowhead=vee, taillabel="*", headlabel="1"];
+ "Ticket" -> "Statut" [arrowhead=vee, style=dashed];
+ "Bus" -> "Trajet" [arrowhead=empty];
+ "Train" -> "Trajet" [arrowhead=empty];
+ "Vol" -> "Trajet" [arrowhead=empty];
+ "Trajet" -> "Itineraire" [arrowhead=diamond, dir=back, taillabel="1", headlabel="1"];
+ "Trajet" -> "Horaire" [arrowhead=diamond, dir=back, taillabel="1", headlabel="1"];
+ "E1" -> "Reservation" [arrowhead=empty];
+ "E2" -> "Reservation" [arrowhead=empty];
+ "E3" -> "Reservation" [arrowhead=empty];
+ "E4" -> "Reservation" [arrowhead=empty];
+ "E5" -> "Reservation" [arrowhead=empty];
 }

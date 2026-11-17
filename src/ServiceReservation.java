@@ -80,8 +80,12 @@ public class ServiceReservation {
         ticket.annuler();
     }
 
-    public int validerDepart(int numeroTrajet) throws ElementIntrouvableException {
+    public int validerDepart(int numeroTrajet) throws ElementIntrouvableException, ReservationInterditeException {
         Trajet trajet = chercherTrajet(numeroTrajet);
+        if (!trajet.departAtteint()) {
+            throw new ReservationInterditeException("le depart du trajet " + numeroTrajet
+                    + " n'est pas encore atteint (dans " + trajet.getHeuresAvantDepart() + "h) : aucun ticket valide");
+        }
         int valides = 0;
         for (Ticket ticket : tickets) {
             if (ticket.getTrajet().equals(trajet) && ticket.getStatut() == StatutTicket.RESERVE) {

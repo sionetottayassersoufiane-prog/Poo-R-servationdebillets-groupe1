@@ -66,10 +66,48 @@ class TicketTest {
 
     @Test
     void validerAuDepartPasseLeTicketEnPaye() {
-        Ticket ticket = new Ticket(1, voyageur(), bus(10, 120), 8000);
+        Ticket ticket = new Ticket(1, voyageur(), bus(10, 0), 8000);
         ticket.validerAuto();
         assertEquals(StatutTicket.PAYE, ticket.getStatut());
         assertFalse(ticket.peutEtreAnnule());
+    }
+
+    @Test
+    void validerAvantLeDepartEstRefuseSansChangerLeTicketNiLesPlaces() {
+        Trajet trajet = bus(10, 120);
+        Ticket ticket = new Ticket(1, voyageur(), trajet, 8000);
+        assertThrows(IllegalStateException.class, ticket::validerAuto);
+        assertEquals(StatutTicket.RESERVE, ticket.getStatut());
+        assertEquals(9, trajet.getPlacesDisponibles());
+    }
+
+    @Test
+    void validerUneHeureAvantLeDepartEstEncoreRefuse() {
+        Trajet trajet = bus(10, 1);
+        Ticket ticket = new Ticket(1, voyageur(), trajet, 8000);
+        assertThrows(IllegalStateException.class, ticket::validerAuto);
+        assertEquals(StatutTicket.RESERVE, ticket.getStatut());
+        assertEquals(9, trajet.getPlacesDisponibles());
+    }
+
+    @Test
+    void validerUnTicketAnnuleAvantLeDepartEstRefuse() {
+        Trajet trajet = bus(10, 120);
+        Ticket ticket = new Ticket(1, voyageur(), trajet, 8000);
+        ticket.annuler();
+        assertThrows(IllegalStateException.class, ticket::validerAuto);
+        assertEquals(StatutTicket.ANNULE, ticket.getStatut());
+        assertEquals(10, trajet.getPlacesDisponibles());
+    }
+
+    @Test
+    void annulerExactementAuLimiteDuBusEstRefuse() {
+        Trajet trajet = bus(10, 24);
+        Ticket ticket = new Ticket(1, voyageur(), trajet, 8000);
+        assertFalse(ticket.peutEtreAnnule());
+        assertThrows(IllegalStateException.class, ticket::annuler);
+        assertEquals(StatutTicket.RESERVE, ticket.getStatut());
+        assertEquals(9, trajet.getPlacesDisponibles());
     }
 
     @Test

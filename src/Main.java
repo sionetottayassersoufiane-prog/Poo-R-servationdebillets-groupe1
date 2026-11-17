@@ -106,8 +106,21 @@ public class Main {
         System.out.println("Apres : " + aAnnuler);
         System.out.println(service.chercherTrajet(102));
 
-        int valides = service.validerDepart(101);
-        System.out.println(valides + " ticket(s) valide(s) au depart du trajet 101");
+        int ticketsAvant = service.nombreTickets();
+        Ticket enAttente = service.chercherTicket(1);
+        try {
+            service.validerDepart(101);
+        } catch (ReservationInterditeException e) {
+            System.out.println("Validation anticipee refusee : " + e.getMessage());
+        }
+        System.out.println("Ticket 1 apres la tentative : " + enAttente.getStatut()
+                + ", places du trajet 101 : " + service.chercherTrajet(101).getPlacesDisponibles()
+                + ", tickets : " + ticketsAvant + " -> " + service.nombreTickets());
+
+        service.ajouterTrajet(new TrajetBus(105, "Ouagadougou", "Ziniare", "2026-11-17", "08:00", 5, 0, "TSR"));
+        service.reserver(3, 105, 1500);
+        int valides = service.validerDepart(105);
+        System.out.println(valides + " ticket(s) valide(s) au depart du trajet 105");
     }
 
     private static void bilan(ServiceReservation service) {

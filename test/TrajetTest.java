@@ -73,6 +73,30 @@ class TrajetTest {
     }
 
     @Test
+    void leLimiteDAnnulationDuTrainEst48Heures() {
+        Trajet pile = new TrajetTrain(1, "Ouagadougou", "Banfora", "2026-12-10", "08:00", 10, 48, "SIT 12");
+        Trajet juste = new TrajetTrain(2, "Ouagadougou", "Banfora", "2026-12-10", "08:00", 10, 49, "SIT 12");
+        assertFalse(pile.annulationEncorePossible());
+        assertTrue(juste.annulationEncorePossible());
+    }
+
+    @Test
+    void leLimiteDAnnulationDuVolEst72Heures() {
+        Trajet pile = new TrajetVol(1, "Ouagadougou", "Abidjan", "2026-12-10", "08:00", 10, 72, "AH 512");
+        Trajet juste = new TrajetVol(2, "Ouagadougou", "Abidjan", "2026-12-10", "08:00", 10, 73, "AH 512");
+        assertFalse(pile.annulationEncorePossible());
+        assertTrue(juste.annulationEncorePossible());
+    }
+
+    @Test
+    void leDepartEstAtteintSeulementAZeroHeure() {
+        Trajet auDepart = new TrajetBus(1, "Ouagadougou", "Koudougou", "2026-12-10", "08:00", 10, 0, "TSR");
+        Trajet presque = new TrajetBus(2, "Ouagadougou", "Koudougou", "2026-12-10", "08:00", 10, 1, "TSR");
+        assertTrue(auDepart.departAtteint());
+        assertFalse(presque.departAtteint());
+    }
+
+    @Test
     void lAnnulationExigeStrictementPlusQueLeDelai() {
         Trajet pile = new TrajetBus(1, "Ouagadougou", "Koudougou", "2026-12-10", "08:00", 10, 24, "TSR");
         Trajet juste = new TrajetBus(2, "Ouagadougou", "Koudougou", "2026-12-10", "08:00", 10, 25, "TSR");

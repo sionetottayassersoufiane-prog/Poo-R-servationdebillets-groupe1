@@ -18,11 +18,11 @@ Les données restent en mémoire pendant l'exécution. Il n'y a ni interface gra
 
 ## Ce que contient ce rendu
 
-`ServiceReservation` orchestre les opérations (réserver, annuler, valider le départ) et garantit qu'un refus ne laisse rien à moitié modifié. Cinq exceptions métier remplacent les booléens et les `null` du jalon 3 pour les échecs qui comptent, et `IllegalArgumentException` reste réservée aux arguments invalides. Un menu en ligne de commande, `MenuConsole`, permet d'utiliser l'agence sans toucher au code : consulter les trajets, chercher une ville, enregistrer un voyageur, réserver, annuler, valider un départ et voir le bilan. La suite JUnit 5 compte 64 tests.
+`ServiceReservation` orchestre les opérations (réserver, annuler, valider le départ) et garantit qu'un refus ne laisse rien à moitié modifié. Cinq exceptions métier remplacent les booléens et les `null` du jalon 3 pour les échecs qui comptent, et `IllegalArgumentException` reste réservée aux arguments invalides. Un menu en ligne de commande, `MenuConsole`, permet d'utiliser l'agence sans toucher au code : consulter les trajets, chercher une ville, enregistrer un voyageur, réserver, annuler, valider un départ et voir le bilan. La suite JUnit 5 compte 72 tests.
 
 Le jalon 4 est aussi la version finale du projet, rendue le 20 novembre 2026. Il n'y a donc qu'un seul rendu et un seul tag.
 
-Tag attendu sur GitHub : `jalon4`.
+Tag sur GitHub : `jalon4` (même écriture que `jalon1`, `jalon2` et `jalon3`).
 
 ## Lancer le programme
 
@@ -42,14 +42,20 @@ java -cp target/classes Main menu
 Sans Maven :
 
 ```
-javac -d out src/*.java
+javac -encoding UTF-8 -d out src/*.java
 java -cp out Main menu
 ```
 
-Tests :
+Compilation (Java 17 et Maven 3.8 ou plus) :
 
 ```
-mvn test
+mvn -B compile
+```
+
+Tests (JUnit 5.11.0, 72 tests, télécharge JUnit au premier lancement) :
+
+```
+mvn -B test
 ```
 
 ## Les classes
@@ -70,11 +76,12 @@ mvn test
 - Les numéros de ticket sont successifs et ne sautent pas lors d'un refus.
 - Une saisie du menu qui n'est pas un nombre est refusée sans rien modifier et sans arrêter le programme.
 - Un refus du service s'affiche sous la forme « Operation refusee : ... » et le menu continue.
+- Un ticket n'est validé (passage à Payé) que si le départ est atteint, c'est-à-dire `heuresAvantDepart <= 0`. Avant le départ, `Ticket.validerAuto()` lève `IllegalStateException` et `ServiceReservation.validerDepart()` lève `ReservationInterditeException`, sans modifier aucun ticket, aucune place ni le chiffre d'affaires. Un ticket créé 120 h avant le départ reste donc réservé après une tentative de validation anticipée.
 - Tous les invariants des jalons précédents restent vrais.
 
 ## Les tests
 
-La suite JUnit 5 compte 64 tests : cas normaux, cas limites et refus. Pour chaque refus important, le test vérifie le type d'exception et l'état après l'appel (nombre de places, nombre de tickets, statut). La trace de recette est dans `docs/recette.md` et la note de conception dans `docs/note-conception.md`.
+La suite JUnit 5 compte 72 tests : cas normaux, cas limites et refus. Les 31 vérifications du jalon 3 (`Main`) sont reprises en JUnit. S'y ajoutent les essais de validation (à 120 h, à 1 h, au départ, billet annulé) et les limites d'annulation des trois modes de transport : 24 h / 25 h pour le bus, 48 h / 49 h pour le train, 72 h / 73 h pour le vol. Pour chaque refus important, le test vérifie le type d'exception et l'état après l'appel (nombre de places, nombre de tickets, statut). La trace de recette est dans `docs/recette.md` et la note de conception dans `docs/note-conception.md`.
 
 ## Trois choix à défendre
 

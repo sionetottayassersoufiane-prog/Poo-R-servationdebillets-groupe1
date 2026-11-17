@@ -48,6 +48,10 @@ public abstract class Trajet implements Comparable<Trajet> {
         return horaire.getHeuresAvantDepart() > delaiAnnulationHeures();
     }
 
+    public boolean departAtteint() {
+        return horaire.getHeuresAvantDepart() <= 0;
+    }
+
     public int getNumero() {
         return numero;
     }

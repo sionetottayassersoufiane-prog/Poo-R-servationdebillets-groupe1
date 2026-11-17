@@ -126,12 +126,26 @@ class ServiceReservationTest {
     @Test
     void validerLeDepartPasseLesTicketsReservesEnPayes() throws ReservationException {
         ServiceReservation service = creerService();
-        service.reserver(1, 101, 8000);
-        service.reserver(2, 101, 8000);
-        service.annuler(2);
-        assertEquals(1, service.validerDepart(101));
+        service.ajouterTrajet(new TrajetBus(105, "Ouagadougou", "Ziniare", "2026-11-17", "08:00", 2, 0, "TSR"));
+        service.reserver(1, 105, 8000);
+        service.reserver(2, 105, 8000);
+        service.reserver(3, 101, 8000);
+        service.annuler(3);
+        assertEquals(2, service.validerDepart(105));
         assertEquals(StatutTicket.PAYE, service.chercherTicket(1).getStatut());
-        assertEquals(StatutTicket.ANNULE, service.chercherTicket(2).getStatut());
+        assertEquals(StatutTicket.PAYE, service.chercherTicket(2).getStatut());
+        assertEquals(StatutTicket.ANNULE, service.chercherTicket(3).getStatut());
+    }
+
+    @Test
+    void validerLeDepartAvantLHeureEstRefuseSansRienChanger() throws ReservationException {
+        ServiceReservation service = creerService();
+        service.reserver(1, 101, 8000);
+        assertThrows(ReservationInterditeException.class, () -> service.validerDepart(101));
+        assertEquals(StatutTicket.RESERVE, service.chercherTicket(1).getStatut());
+        assertEquals(1, service.chercherTrajet(101).getPlacesDisponibles());
+        assertEquals(1, service.nombreTickets());
+        assertEquals(0, service.chiffreAffaires());
     }
 
     @Test
@@ -171,9 +185,11 @@ class ServiceReservationTest {
         ServiceReservation service = creerService();
         service.reserver(1, 101, 8000);
         service.reserver(2, 101, 6000);
-        service.reserver(3, 104, 2000);
+        service.ajouterTrajet(new TrajetBus(105, "Ouagadougou", "Ziniare", "2026-11-17", "08:00", 5, 0, "TSR"));
+        service.reserver(1, 105, 8000);
+        service.reserver(2, 105, 6000);
         assertEquals(0, service.chiffreAffaires());
-        service.validerDepart(101);
+        service.validerDepart(105);
         assertEquals(14000, service.chiffreAffaires());
     }
 
